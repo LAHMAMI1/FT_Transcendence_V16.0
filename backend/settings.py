@@ -128,8 +128,5 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Password hashers
-# https://docs.djangoproject.com/en/5.1/topics/auth/passwords/
-PASSWORD_HASHERS = [
-    "django.contrib.auth.hashers.Argon2PasswordHasher", # Argon2 algorithm
-]
+# # Custom user model
+AUTH_USER_MODEL = 'users.User'
