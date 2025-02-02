@@ -7,4 +7,5 @@ User = get_user_model()
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    
+    # Allow only POST requests
+    http_method_names = ['post']

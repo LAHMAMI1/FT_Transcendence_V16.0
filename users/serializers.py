@@ -6,7 +6,7 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=30, required=True)
     last_name = serializers.CharField(max_length=30, required=True)
-    middle_name = serializers.CharField(max_length=30, required=False)
+    middle_name = serializers.CharField(max_length=30, required=False, allow_blank=True)
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'middle_name', 'username', 'email', 'password']
