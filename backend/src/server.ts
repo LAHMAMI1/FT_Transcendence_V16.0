@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import { createUser, getAllUsers } from "./services/userService";
+import { createUser, deleteUser, getAllUsers } from "./services/userService";
 
 const fastify = Fastify({ logger: true });
 
@@ -23,6 +23,14 @@ fastify.get("/users", async (request, reply) => {
     const users = await getAllUsers();
     return users;
 });
+
+// delete a user
+fastify.delete<{ Params: { userId: string } }>("/users/:userId", async (request, reply) => {
+    const userIdInt = parseInt(request.params.userId, 10);
+    
+    await deleteUser(userIdInt);
+    return { message: "User deleted" };
+})
 
 // Start the server
 fastify.listen({ port: 3000, host: "0.0.0.0" });
