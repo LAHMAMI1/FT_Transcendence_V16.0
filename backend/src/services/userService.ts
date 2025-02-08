@@ -1,12 +1,26 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
+import argon2 from "argon2";
 
 const prisma = new PrismaClient();
-const SALT_ROUNDS = 10;  // Define the cost factor for bcrypt
 
 export async function createUser(first_name: string, last_name: string, username: string, email: string, password: string) {
+
+    // check for duplicate email or username
+    const existingUser = await prisma.user.findFirst({
+        where: {
+            OR: [
+                { email },
+                { username }
+            ]
+        }
+    });
+
+    if (existingUser) {
+        throw new Error("User with this email or username already exists");
+    }
+
     // Hash the password before storing it
-    const Hashedpassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const Hashedpassword = await argon2.hash(password);
 
     return prisma.user.create
         ({
@@ -18,6 +32,25 @@ export async function createUser(first_name: string, last_name: string, username
                 password: Hashedpassword
             }
         });
+}
+
+export async function loginUser(email: string, password: string) {
+
+    // check for existing email
+    const user = await prisma.user.findUnique({
+        where: { email }
+    });
+
+    if (!user)
+        throw new Error("Email not found, You may want to register");
+
+    // check for the password
+    const validPassword = await argon2.verify(user.password, password);
+
+    if (!validPassword)
+        throw new Error("Password Incorrect");
+
+    return (user);
 }
 
 export async function getAllUsers() {
