@@ -16,6 +16,8 @@ model User {
   last_name          String
   username           String  @unique
   email              String  @unique
+  date_joined        DateTime @default(now())
   password           String
+  oauth_provider     String
 }
 
