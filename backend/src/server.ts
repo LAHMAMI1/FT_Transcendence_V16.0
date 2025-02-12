@@ -6,6 +6,7 @@ import config from "./config";
 import userRoutes from "./routes/userRoutes";
 import oauthRoutes from "./routes/oauthRoutes";
 import testRoutes from "./routes/testRoutes";
+import towFactorRoutes from "./routes/twoFactorRoutes";
 
 const fastify = Fastify({ logger: true });
 
@@ -24,6 +25,7 @@ fastify.register(fastifyJwt, {
 // Register routes
 fastify.register(userRoutes);
 fastify.register(oauthRoutes);
+fastify.register(towFactorRoutes);
 fastify.register(testRoutes);
 
 // Start the server
