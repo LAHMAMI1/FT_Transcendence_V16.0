@@ -20,9 +20,9 @@ export default async function userRoutes(fastify: FastifyInstance) {
     fastify.post<{ Body: RegisterUserRequest }>("/register", async (request, reply) => {
         try {
             const { first_name, last_name, username, email, password } = request.body;
-            if (await checkExistingUser(email, username)) {
+            if (await checkExistingUser(email, username))
                 throw new Error("User with this email or username already exists");
-            }
+
             const user = await createUser(first_name, last_name, username, email, password, "local");
             return { userId: user.id, message: "User created succesfully" };
         }
@@ -35,10 +35,21 @@ export default async function userRoutes(fastify: FastifyInstance) {
     fastify.post<{ Body: LoginUserRequest }>("/login", async (request, reply) => {
         try {
             const { email, password } = request.body;
-            if (!password) {
-                throw new Error("Password is required");
-            }
+            
             const user = await loginUser(email, password);
+
+            if (user.two_factor_enabled) {
+
+                const tempToken = fastify.jwt.sign(
+                    { userId: user.id,
+                      towFactor: true,
+                    },
+                    { expiresIn: "5m" }
+                );
+
+                return { message: "2FA required", tempToken };
+            };
+
             // Generate a JWT token that includes the userId in the payload and set the token to expire in 1 hour
             const token = fastify.jwt.sign(
                 { userId: user.id },

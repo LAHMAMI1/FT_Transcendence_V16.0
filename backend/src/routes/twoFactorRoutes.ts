@@ -1,16 +1,18 @@
 import { FastifyInstance } from "fastify";
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
-import { PrismaClient } from "@prisma/client";
+import { enableTOTP, processTOTP } from "../services/twoFactorService";
 import { request } from "http";
-
-const prisma = new PrismaClient();
 
 // Interface for setup 2FA
 interface Setup2FARequest {
-    userId: number;
     secret: string;
     token: string;
+}
+// Interface for login 2FA
+interface Login2FARequest {
+    tempToken: string;
+    twoFactorToken: string;
 }
 
 export default async function towFactorRoutes(fastify: FastifyInstance) {
@@ -47,30 +49,40 @@ export default async function towFactorRoutes(fastify: FastifyInstance) {
             }
 
             const { secret, token } = request.body;
-            // Check the TOTP
-            const validTOTP = speakeasy.totp.verify({
-                secret,
-                encoding: "base32",
-                token,
-                window: 1,
-            });
+            const userId = ( request.user as { userId: number } ).userId;
+            
+            // TOTP
+            await enableTOTP(secret, token, userId);
 
-            if (!validTOTP) {
-                throw new Error("Invalid 2FA Token");
-            };
-
-            const userId = request.body.userId;
-            await prisma.user.update({
-                where: { id: userId },
-                data: {
-                    two_factor_enabled: true,
-                    two_factor_secret: secret,
-                },
-            });
             return { message: "2FA enabled successfully" };
         } 
         catch (error: any) {
             return { message: error.message };
+        }
+    });
+
+    // login with 2FA
+    fastify.post<{ Body: Login2FARequest }>("/login/2fa", async (request, reply) => {
+        try {
+            const { tempToken, twoFactorToken } = request.body;
+
+            // Check the temporary token
+            const payload = fastify.jwt.verify(tempToken) as { userId: number, towFactor?: boolean };
+            if (!payload.towFactor)
+                throw new Error("Invalid Temporary Token");
+
+            const user = await processTOTP(twoFactorToken, payload.userId);
+
+            // Generate a JWT token that includes the userId in the payload and set the token to expire in 1 hour
+            const token = fastify.jwt.sign(
+                { userId: user.id },
+                { expiresIn: "1h" }
+            );
+
+            return { message: "Login successful!", token };
+        }
+        catch (error: any) {
+            return { message: error.message }
         }
     });
 };

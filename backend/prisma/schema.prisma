@@ -21,6 +21,5 @@ model User {
   oauth_provider     String
   two_factor_enabled Boolean @default(false)
   two_factor_secret  String?
-  two_factor_recovery_codes String?
   // avatar             String?
 }

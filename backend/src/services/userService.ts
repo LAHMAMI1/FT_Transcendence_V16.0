@@ -34,6 +34,9 @@ export async function createUser(first_name: string, last_name: string, username
 
 export async function loginUser(email: string, password: string) {
 
+    if (!password) 
+        throw new Error("Password is required");
+
     // check for existing email
     const user = await prisma.user.findUnique({
         where: { email }
