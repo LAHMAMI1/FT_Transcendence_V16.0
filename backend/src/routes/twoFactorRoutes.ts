@@ -17,12 +17,11 @@ interface Login2FARequest {
 
 export default async function towFactorRoutes(fastify: FastifyInstance) {
     // Generates a new TOTP secret and returns a QR code URL for the user
-    fastify.get("/2fa/setup", async (request, reply) => {
+    fastify.get("/2fa/totp/setup", async (request, reply) => {
         try {
             // Check JWT to authenticate the user
-            if (!await request.jwtVerify()) {
+            if (!await request.jwtVerify())
                 throw new Error("Unauthorized");
-            }
             
             // Generate a new TOTP secret
             const totpSecret = speakeasy.generateSecret({
@@ -41,12 +40,11 @@ export default async function towFactorRoutes(fastify: FastifyInstance) {
     });
 
     // Verifies the provided TOTP token and enables 2FA for the user by updating the database
-    fastify.post<{ Body: Setup2FARequest }>("/2fa/enable", async (request, reply) => {
+    fastify.post<{ Body: Setup2FARequest }>("/2fa/totp/enable", async (request, reply) => {
         try {
             // Check JWT to authenticate the user
-            if (!await request.jwtVerify()) {
+            if (!await request.jwtVerify())
                 throw new Error("Unauthorized");
-            }
 
             const { secret, token } = request.body;
             const userId = ( request.user as { userId: number } ).userId;
