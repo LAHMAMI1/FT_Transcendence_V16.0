@@ -24,5 +24,6 @@ model User {
   // Fields for Email-based 2FA
   two_factor_email_code      String?
   two_factor_email_expires   DateTime?
+  two_factor_email_verified  Boolean @default(false)
   // avatar             String?
 }

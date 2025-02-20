@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { createUser, checkExistingUser, loginUser } from "../services/userService";
+import { createUser, checkExistingUser, loginUser } from "../../services/userService";
 
 // Interface for user registration
 interface RegisterUserRequest {
@@ -35,14 +35,15 @@ export default async function userRoutes(fastify: FastifyInstance) {
     fastify.post<{ Body: LoginUserRequest }>("/login", async (request, reply) => {
         try {
             const { email, password } = request.body;
-            
+
             const user = await loginUser(email, password);
 
             if (user.two_factor_enabled) {
 
                 const tempToken = fastify.jwt.sign(
-                    { userId: user.id,
-                      towFactor: true,
+                    {
+                        userId: user.id,
+                        towFactor: true,
                     },
                     { expiresIn: "5m" }
                 );
@@ -55,7 +56,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
                 { userId: user.id },
                 { expiresIn: "1h" }
             );
-    
+
             return { message: "Login successful!", token };
         }
         catch (error: any) {

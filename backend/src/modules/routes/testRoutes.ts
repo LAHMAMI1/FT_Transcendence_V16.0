@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { deleteUser, getAllUsers} from "../services/userService";
+import { deleteUser, getAllUsers } from "../../services/userService";
 
 export default async function testRoutes(fastify: FastifyInstance) {
     // Fetch all users

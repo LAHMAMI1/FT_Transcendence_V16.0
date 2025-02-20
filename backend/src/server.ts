@@ -1,12 +1,11 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
-import { request } from "http";
-import config from "./config";
-import userRoutes from "./routes/userRoutes";
-import oauthRoutes from "./routes/oauthRoutes";
-import testRoutes from "./routes/testRoutes";
-import towFactorRoutes from "./routes/twoFactorRoutes";
+import { env } from "./config";
+import userRoutes from "./modules/routes/userRoutes";
+import oauthRoutes from "./modules/routes/oauthRoutes";
+import testRoutes from "./modules/routes/testRoutes";
+import towFactorRoutes from "./modules/twoFactor/routes/twoFactor.routes";
 
 const fastify = Fastify({ logger: true });
 
@@ -19,13 +18,13 @@ fastify.register(cors, {
 });
 // Register the JWT plugin with a secret key.
 fastify.register(fastifyJwt, {
-    secret: config.jwtSecret,
+    secret: env.jwtSecret,
 });
 
 // Register routes
 fastify.register(userRoutes);
 fastify.register(oauthRoutes);
-fastify.register(towFactorRoutes);
+fastify.register(towFactorRoutes, { prefix: "/2fa" });
 fastify.register(testRoutes);
 
 // Start the server

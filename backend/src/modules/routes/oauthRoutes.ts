@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
-import { createUser, checkExistingUser } from "../services/userService";
+import { createUser, checkExistingUser } from "../../services/userService";
 import { OAuth2Client } from "google-auth-library";
-import config from "../config";
+import { env } from "../../config";
 
 // Interface for Google authentication
 interface GoogleAuthRequest {
@@ -9,7 +9,7 @@ interface GoogleAuthRequest {
 }
 
 // Initialize Google OAuth Client
-const GOOGLE_CLIENT_ID = config.googleClientId;
+const GOOGLE_CLIENT_ID = env.googleClientId;
 const oauth2Client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 export default async function oauthRoutes(fastify: FastifyInstance) {
@@ -46,7 +46,7 @@ export default async function oauthRoutes(fastify: FastifyInstance) {
             );
 
             return { message: "Google authentication successful!", token };
-        } 
+        }
         catch (error: any) {
             return { message: error.message }
         }
