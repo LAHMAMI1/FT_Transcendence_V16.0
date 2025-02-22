@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { TotpController } from "../controllers/totp.controller";
 
-export async function totpRoutes(fastify: FastifyInstance) {
+export default async function totpRoutes(fastify: FastifyInstance) {
     const controller = new TotpController();
 
     // Generates a new TOTP secret and returns a QR code URL for the user

@@ -2,10 +2,9 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyJwt from "@fastify/jwt";
 import { env } from "./config";
-import userRoutes from "./modules/routes/userRoutes";
-import oauthRoutes from "./modules/routes/oauthRoutes";
-import testRoutes from "./modules/routes/testRoutes";
 import towFactorRoutes from "./modules/twoFactor/routes/twoFactor.routes";
+import authRoutes from "./modules/authentication/routes/auth.routes";
+import testRoutes from "./modules/testRoutes";
 
 const fastify = Fastify({ logger: true });
 
@@ -22,8 +21,7 @@ fastify.register(fastifyJwt, {
 });
 
 // Register routes
-fastify.register(userRoutes);
-fastify.register(oauthRoutes);
+fastify.register(authRoutes, { prefix: "/auth" });
 fastify.register(towFactorRoutes, { prefix: "/2fa" });
 fastify.register(testRoutes);
 

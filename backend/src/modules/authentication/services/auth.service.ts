@@ -1,0 +1,94 @@
+import { PrismaClient } from "@prisma/client";
+import argon2 from "argon2";
+import { OAuth2Client } from "google-auth-library";
+import { env } from "../../../config";
+
+const prisma = new PrismaClient();
+
+export class authService {
+
+    // registeration services
+    async checkExistingUser(email: string, username: string) {
+        return prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { username }
+                ]
+            }
+        });
+    }
+
+    async createUser(first_name: string, last_name: string, username: string, email: string, password: string, oauth_provider: string) {
+
+        // Hash the password before storing it
+        const Hashedpassword = await argon2.hash(password);
+    
+        return prisma.user.create
+            ({
+                data: {
+                    first_name,
+                    last_name,
+                    username,
+                    email,
+                    password: Hashedpassword,
+                    oauth_provider,
+                }
+            });
+    }
+
+    // login services
+    async loginUser(email: string, password: string) {
+    
+        if (!password) 
+            throw new Error("Password is required");
+    
+        // check for existing email
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+    
+        if (!user)
+            throw new Error("Email not found, You may want to register");
+    
+        // check for the password
+        const validPassword = await argon2.verify(user.password, password);
+    
+        if (!validPassword)
+            throw new Error("Password Incorrect");
+    
+        return (user);
+    }
+
+    // google auth services
+    async verifyGoogleToken(idToken: string) {
+
+        // Initialize Google OAuth Client
+        const GOOGLE_CLIENT_ID = env.googleClientId;
+        const oauth2Client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+        // Verify the Google ID token
+        const ticket = await oauth2Client.verifyIdToken({
+            idToken,
+            audience: GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        if (!payload || !payload.email) {
+            throw new Error("Invalid ID token");
+        }
+
+        const email = payload.email;
+        const first_name = payload.given_name as string;
+        const last_name = payload.family_name as string;
+
+        let user = await this.checkExistingUser(email, "");
+        // Check if the user already exists if not create a new user
+        if (!user) {
+            const username = email.split("@")[0];
+            user = await this.createUser(first_name, last_name, username, email, "", "google");
+        }
+
+        return (user);
+    }
+}

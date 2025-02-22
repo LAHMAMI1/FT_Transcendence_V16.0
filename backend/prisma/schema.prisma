@@ -20,10 +20,12 @@ model User {
   password           String
   oauth_provider     String
   two_factor_enabled Boolean @default(false)
+  // Fields for TOTP-based 2FA
+  totp_enabled Boolean @default(false)
   two_factor_secret  String?
   // Fields for Email-based 2FA
+  email_enabled   Boolean @default(false)
   two_factor_email_code      String?
   two_factor_email_expires   DateTime?
-  two_factor_email_verified  Boolean @default(false)
   // avatar             String?
 }

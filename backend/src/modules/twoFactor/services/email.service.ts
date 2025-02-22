@@ -6,6 +6,19 @@ const prisma = new PrismaClient();
 
 export class EmailService {
 
+    async enableEmail(userId: number) {
+        // Enable the email 2FA
+        await prisma.user.update({
+            where: { id: userId },
+            data: { 
+                two_factor_enabled: true,
+                email_enabled: true,
+             },
+        });
+
+        return { message: "Email 2FA enabled successfully" };
+    }
+
     async setupEmail(userId: number) {
         // Generate a random 6 digit code
         const emailCode = randomInt(100000, 999999).toString();
@@ -50,13 +63,5 @@ export class EmailService {
 
         if (user.two_factor_email_code !== code)
             throw new Error("Invalid email code");
-
-        // Mark the user as Verified
-        await prisma.user.update({
-            where: { id: userId },
-            data: { two_factor_email_verified: true },
-        });
-
-        return { message: "Email 2FA verified successfully" };
     }
 }

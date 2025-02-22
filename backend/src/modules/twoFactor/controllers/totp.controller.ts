@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { TotpService } from "../services/totp.service";
-import { EnableTOTPRequest, VerifyTOTPRequest } from "../types/totp.types";
+import { EnableTOTPRequest, VerifyTOTPRequest } from "../types/twoFactor.types";
 
 export class TotpController {
     private totpService = new TotpService();
@@ -53,11 +53,11 @@ export class TotpController {
             if (!payload.towFactor)
                 throw new Error("Invalid Temporary Token");
 
-            const user = await this.totpService.verifyTOTP(payload.userId, twoFactorToken);
+            await this.totpService.verifyTOTP(payload.userId, twoFactorToken);
 
             // Generate a JWT token that includes the userId in the payload and set the token to expire in 1 hour
             const token = request.server.jwt.sign(
-                { userId: user.id },
+                { userId: payload.userId },
                 { expiresIn: "1h" }
             );
 

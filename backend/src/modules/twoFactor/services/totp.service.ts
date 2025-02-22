@@ -36,11 +36,12 @@ export class TotpService {
             where: { id: userId },
             data: {
                 two_factor_enabled: true,
+                totp_enabled: true,
                 two_factor_secret: secret,
             },
         });
 
-        return { message: "2FA enabled successfully" };
+        return { message: "2FA  authenticator apps enabled successfully" };
     }
 
     async verifyTOTP(userId: number, twoFactorToken: string) {
@@ -48,12 +49,11 @@ export class TotpService {
         if (!twoFactorToken)
                 throw new Error("2FA Token is missing");
         
-        const user = await prisma?.user.findUnique({
+        const user = await prisma.user.findUnique({
             where: { id: userId},
         });
-        if (!user || !user.two_factor_enabled || !user.two_factor_secret) {
+        if (!user || !user.totp_enabled || !user.two_factor_secret)
             throw new Error("User not found or 2FA not enabled");
-            }
     
         const validTowFactorToken = speakeasy.totp.verify({
             secret: user.two_factor_secret,
@@ -64,7 +64,5 @@ export class TotpService {
     
         if (!validTowFactorToken)
             throw new Error("Invalid 2FA Token");
-
-        return (user);
     }
 }

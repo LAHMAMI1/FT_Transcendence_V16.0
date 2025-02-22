@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { totpRoutes } from "./totp.routes";
+import totpRoutes from "./totp.routes";
 import emailRoutes from "./email.routes";
 
 export default async function twoFactorRoutes(fastify: FastifyInstance) {
