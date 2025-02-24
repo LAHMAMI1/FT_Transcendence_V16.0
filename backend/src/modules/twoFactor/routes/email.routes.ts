@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { EmailController } from "../controllers/email.controller";
+import { VerifyEmailSchema } from "../schemas/twoFactor.schemas";
 
 export default async function emailRoutes(fastify: FastifyInstance) {
     const controller = new EmailController;
@@ -10,5 +11,5 @@ export default async function emailRoutes(fastify: FastifyInstance) {
     fastify.post("/setup", controller.setupEmail);
 
     // Email 2FA verification
-    fastify.post("/verify", controller.verifyEmail);
+    fastify.post("/verify", { schema: VerifyEmailSchema }, controller.verifyEmail);
 }
