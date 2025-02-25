@@ -16,7 +16,10 @@ export class EmailService {
              },
         });
 
-        return { message: "Email 2FA enabled successfully" };
+        return { 
+            statusCode: 200,
+            message: "Email 2FA enabled successfully" 
+        };
     }
 
     async setupEmail(userId: number) {
@@ -27,7 +30,10 @@ export class EmailService {
             where: { id: userId }
         });
         if (!user)
-            throw new Error("User not found");
+            throw {
+                statusCode: 404,
+                message: "User not found"
+            }
 
         // send the mail with the code
         await transporter.sendMail({
@@ -47,7 +53,10 @@ export class EmailService {
             },
         });
 
-        return { message: "Email code sent" };
+        return { 
+            statusCode: 200,
+            message: "Email code sent" 
+        };
     }
 
     async verifyEmail(userId: number, code: string) {
@@ -55,13 +64,22 @@ export class EmailService {
             where: { id: userId }
         });
         if (!user || !user.two_factor_email_code || !user.two_factor_email_expires)
-            throw new Error("User not found or Email 2FA not set up");
+            throw {
+                statusCode: 401,
+                message: "2FA not enabled",
+            };
 
         // Check the expiration date
         if (new Date() > user.two_factor_email_expires)
-            throw new Error("The email code has expired");
+            throw {
+                statusCode: 401,
+                message: "The email code has expired"
+            };
 
         if (user.two_factor_email_code !== code)
-            throw new Error("Invalid email code");
+            throw {
+                statusCode: 401,
+                message: "Invalid email code"
+            };
     }
 }

@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
+import { stat } from "fs";
 
 const prisma = new PrismaClient();
 
@@ -16,7 +17,7 @@ export class TotpService {
         const qrCodeDataURL = await qrcode.toDataURL(totpSecret.otpauth_url!);
 
         // Return the base32-encoded secret and the QR code
-        return { secret: totpSecret.base32, qrCodeDataURL };
+        return { statusCode: 200, secret: totpSecret.base32, qrCodeDataURL };
     }
 
     async enableTOTP(userId: number, secret: string, token: string) {
@@ -28,9 +29,11 @@ export class TotpService {
             window: 1,
         });
 
-        if (!validTOTP) {
-            throw new Error("Invalid 2FA Token");
-        };
+        if (!validTOTP)
+            throw {
+                statusCode: 401,
+                message: "Invalid TOTP token",
+            };
 
         await prisma.user.update({
             where: { id: userId },
@@ -41,19 +44,22 @@ export class TotpService {
             },
         });
 
-        return { message: "2FA  authenticator apps enabled successfully" };
+        return { 
+            statusCode: 200,
+            message: "2FA  authenticator apps enabled successfully"
+        };
     }
 
     async verifyTOTP(userId: number, twoFactorToken: string) {
-
-        if (!twoFactorToken)
-                throw new Error("2FA Token is missing");
         
         const user = await prisma.user.findUnique({
             where: { id: userId},
         });
         if (!user || !user.totp_enabled || !user.two_factor_secret)
-            throw new Error("User not found or 2FA not enabled");
+            throw {
+                statusCode: 401,
+                message: "2FA not enabled",
+            };
     
         const validTowFactorToken = speakeasy.totp.verify({
             secret: user.two_factor_secret,
@@ -63,6 +69,9 @@ export class TotpService {
         });
     
         if (!validTowFactorToken)
-            throw new Error("Invalid 2FA Token");
+            throw {
+                statusCode: 401,
+                message: "Invalid 2FA token",
+            };
     }
 }

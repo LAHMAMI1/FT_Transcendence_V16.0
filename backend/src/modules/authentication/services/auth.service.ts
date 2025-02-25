@@ -40,22 +40,25 @@ export class authService {
     // login services
     async loginUser(email: string, password: string) {
     
-        if (!password) 
-            throw new Error("Password is required");
-    
         // check for existing email
         const user = await prisma.user.findUnique({
             where: { email }
         });
     
         if (!user)
-            throw new Error("Email not found, You may want to register");
+            throw {
+                statusCode: 404,
+                message: "Email not found, You may want to register"
+            }
     
         // check for the password
         const validPassword = await argon2.verify(user.password, password);
     
         if (!validPassword)
-            throw new Error("Password Incorrect");
+            throw {
+                statusCode: 401,
+                message: "Password Incorrect"
+            }
     
         return (user);
     }
@@ -75,7 +78,10 @@ export class authService {
 
         const payload = ticket.getPayload();
         if (!payload || !payload.email) {
-            throw new Error("Invalid ID token");
+            throw {
+                statusCode: 401,
+                message: "Invalid ID token"
+            }
         }
 
         const email = payload.email;

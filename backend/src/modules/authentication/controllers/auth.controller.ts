@@ -16,13 +16,13 @@ export class authController {
         try {
             const { first_name, last_name, username, email, password } = request.body;
             if (await this.authService.checkExistingUser(email, username))
-                throw new Error("User with this email or username already exists");
+                return reply.code(409).send({ message: "User with this email or username already exists" });
 
             const user = await this.authService.createUser(first_name, last_name, username, email, password, "local");
-            return reply.send({ userId: user.id, message: "User created succesfully" });
+            return reply.code(201).send({ userId: user.id, message: "User created succesfully" });
         }
         catch (error: any) {
-            return { message: error.message };
+            return reply.code(500).send({ message: "Internal Server Error", error: error.message });
         }
     }
 
@@ -43,7 +43,7 @@ export class authController {
                     { expiresIn: "5m" }
                 );
 
-                return { message: "2FA required", tempToken };
+                return reply.code(401).send({ message: "2FA required", tempToken });
             };
 
             // Generate a JWT token that includes the userId in the payload and set the token to expire in 1 hour
@@ -52,10 +52,10 @@ export class authController {
                 { expiresIn: "1h" }
             );
 
-            return reply.send({ message: "Login successful!", token });
+            return reply.code(200).send({ message: "Login successful!", token });
         }
         catch (error: any) {
-            return { message: error.message }
+            return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
     }
 
@@ -72,10 +72,10 @@ export class authController {
                 { expiresIn: "1h" }
             );
 
-            return reply.send({ message: "Google authentication successful!", token });
+            return reply.code(200).send({ message: "Google authentication successful!", token });
         }
         catch (error: any) {
-            return { message: error.message }
+            return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
     }
 }

@@ -13,34 +13,26 @@ export class TotpController {
 
     async setupTOTP(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // Check JWT to authenticate the user
-            if (!await request.jwtVerify())
-                throw new Error("Unauthorized");
-
             const result = await this.totpService.setupTOTP();
 
-            return reply.send(result);
+            return reply.code(result.statusCode).send(result);
         } 
         catch (error: any) {
-            return { message: error.message };
+            return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
     }
 
-    async enableTOTP(request: FastifyRequest<{ Body: EnableTOTPRequest }>, reply: FastifyReply) {
+    async enableTOTP(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // Check JWT to authenticate the user
-            if (!await request.jwtVerify())
-                throw new Error("Unauthorized");
-
-            const { secret, token } = request.body;
+            const { secret, token } = request.body as EnableTOTPRequest;
             const userId = (request.user as { userId: number }).userId;
 
             const result = await this.totpService.enableTOTP(userId, secret, token);
 
-            return reply.send(result);
+            return reply.code(result.statusCode).send(result);
         }
         catch (error: any) {
-            return { message: error.message };
+            return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
     }
 
@@ -51,7 +43,7 @@ export class TotpController {
             // Check the temporary token
             const payload = request.server.jwt.verify(tempToken) as { userId: number, towFactor?: boolean };
             if (!payload.towFactor)
-                throw new Error("Invalid Temporary Token");
+                return reply.code(401).send({ message: "Invalid Temporary Token"});
 
             await this.totpService.verifyTOTP(payload.userId, twoFactorToken);
 
@@ -61,10 +53,10 @@ export class TotpController {
                 { expiresIn: "1h" }
             );
 
-            return reply.send({ message: "Login successful!", token });
+            return reply.code(200).send({ message: "Login successful!", token });
         }
         catch (error: any) {
-            return { message: error.message };
+            return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
     }
 }

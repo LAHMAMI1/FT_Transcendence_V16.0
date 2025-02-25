@@ -13,36 +13,27 @@ export class EmailController {
     
     async enableEmail(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // Check JWT to authenticate the user
-            if (!await request.jwtVerify())
-                throw new Error("Unauthorized");
-
             const userId = (request.user as { userId: number }).userId;
 
             const result = await this.emailService.enableEmail(userId);
 
-            return reply.send(result);
+            return reply.code(result.statusCode).send(result);
         }
         catch (error: any) {
-            return { message: error.message }
+            return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
     }
 
     async setupEmail(request: FastifyRequest, reply: FastifyReply) {
         try {
-            // Check JWT to authenticate the user
-            if (!await request.jwtVerify()) {
-                throw new Error("Unauthorized");
-            }
-
             const userId = (request.user as { userId: number }).userId;
 
             const result = await this.emailService.setupEmail(userId);
 
-            return reply.send(result);
+            return reply.code(result.statusCode).send(result);
         }
         catch (error: any) {
-            return { message: error.message }
+            return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
     }
 
@@ -53,7 +44,7 @@ export class EmailController {
             // Check the temporary token
             const payload = request.server.jwt.verify(tempToken) as { userId: number, towFactor?: boolean };
             if (!payload.towFactor)
-                throw new Error("Invalid Temporary Token");
+                return reply.code(401).send({ message: "Invalid Temporary Token"});
 
             await this.emailService.verifyEmail(payload.userId, code);
 
@@ -63,10 +54,10 @@ export class EmailController {
                 { expiresIn: "1h" }
             );
 
-            return reply.send({ message: "Login successful!", token });
+            return reply.code(200).send({ message: "Login successful!", token });
         }
         catch (error: any) {
-            return { message: error.message }
+            return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
     }
 }
