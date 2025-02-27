@@ -18,7 +18,11 @@ export class authController {
             if (await this.authService.checkExistingUser(email, username))
                 return reply.code(409).send({ message: "User with this email or username already exists" });
 
-            const user = await this.authService.createUser(first_name, last_name, username, email, password, "local");
+            // Create a new user
+            const user = await this.authService.createUser(username, email, password, "");
+            // Send user information to the management service
+            await this.authService.sendUserInfo(user.id, first_name, last_name, username);
+
             return reply.code(201).send({ userId: user.id, message: "User created succesfully" });
         }
         catch (error: any) {
@@ -33,18 +37,18 @@ export class authController {
 
             const user = await this.authService.loginUser(email, password);
 
-            if (user.two_factor_enabled) {
+            // if (user.two_factor_enabled) {
 
-                const tempToken = request.server.jwt.sign(
-                    {
-                        userId: user.id,
-                        towFactor: true,
-                    },
-                    { expiresIn: "5m" }
-                );
+            //     const tempToken = request.server.jwt.sign(
+            //         {
+            //             userId: user.id,
+            //             towFactor: true,
+            //         },
+            //         { expiresIn: "5m" }
+            //     );
 
-                return reply.code(401).send({ message: "2FA required", tempToken });
-            };
+            //     return reply.code(401).send({ message: "2FA required", tempToken });
+            // };
 
             // Generate a JWT token that includes the userId in the payload and set the token to expire in 1 hour
             const token = request.server.jwt.sign(

@@ -1,0 +1,12 @@
+# Ignore the node_modules directory
+node_modules
+package-lock.json
+tsconfig.json
+# Ignore the .env file
+.env
+# Ignore the Prisma database file
+migrations
+dev.db
+dev.db-journal
+database.sqlite
+database.sqlite-journal

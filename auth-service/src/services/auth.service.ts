@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+import axios from "axios";
 import argon2 from "argon2";
 import { OAuth2Client } from "google-auth-library";
-import { env } from "../../../config";
+import env from "../config/env";
 
 const prisma = new PrismaClient();
 
@@ -9,7 +10,7 @@ export class authService {
 
     // registeration services
     async checkExistingUser(email: string, username: string) {
-        return prisma.user.findFirst({
+        return prisma.authUser.findFirst({
             where: {
                 OR: [
                     { email },
@@ -19,16 +20,14 @@ export class authService {
         });
     }
 
-    async createUser(first_name: string, last_name: string, username: string, email: string, password: string, oauth_provider: string) {
+    async createUser(username: string, email: string, password: string, oauth_provider: string) {
 
         // Hash the password before storing it
         const Hashedpassword = await argon2.hash(password);
-    
-        return prisma.user.create
+
+        return prisma.authUser.create
             ({
                 data: {
-                    first_name,
-                    last_name,
                     username,
                     email,
                     password: Hashedpassword,
@@ -37,11 +36,25 @@ export class authService {
             });
     }
 
+    // Send user information to the management service
+    async sendUserInfo(userId: number, first_name: string, last_name:string, username: string) {
+        const managementServiceUrl = "http://localhost:4000";
+
+        const responce = await axios.post(`${managementServiceUrl}/profile`, {
+            userId,
+            first_name,
+            last_name,
+            username
+        });
+
+        return responce.data;
+    }
+
     // login services
     async loginUser(email: string, password: string) {
     
         // check for existing email
-        const user = await prisma.user.findUnique({
+        const user = await prisma.authUser.findUnique({
             where: { email }
         });
     
@@ -92,7 +105,8 @@ export class authService {
         // Check if the user already exists if not create a new user
         if (!user) {
             const username = email.split("@")[0];
-            user = await this.createUser(first_name, last_name, username, email, "", "google");
+            user = await this.createUser(username, email, "", "google");
+            await this.sendUserInfo(user.id, first_name, last_name, username);
         }
 
         return (user);
