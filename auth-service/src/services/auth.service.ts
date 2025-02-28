@@ -38,7 +38,7 @@ export class authService {
 
     // Send user information to the management service
     async sendUserInfo(userId: number, first_name: string, last_name:string, username: string) {
-        const managementServiceUrl = "http://localhost:4000";
+        const managementServiceUrl = env.managementServiceUrl;
 
         const responce = await axios.post(`${managementServiceUrl}/profile`, {
             userId,

@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    image: auth-service
+    env_file: .env
+    # expose: "3001"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./auth-service:/auth-service
+    depends_on:
+      - management-service
+
+  management-service:
+    build:
+      context: ./management-service
+      dockerfile: Dockerfile
+    container_name: management-service
+    image: management-service
+    env_file: .env
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./management-service:/management-service

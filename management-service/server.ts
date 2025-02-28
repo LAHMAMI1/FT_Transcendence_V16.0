@@ -1,16 +1,24 @@
 // management-service/server.ts (simplified example)
 import Fastify from "fastify";
 import { PrismaClient } from "@prisma/client";
+import cors from "@fastify/cors";
 
 const fastify = Fastify({ logger: true });
 const prisma = new PrismaClient();
+
+// Enable CORS to allow cross-origin requests (for development, we allow all origins)
+fastify.register(cors, {
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+});
 
 fastify.post("/profile", async (request, reply) => {
   try {
     const { userId, first_name, last_name, username } = request.body as any;
     // Create a profile record in Management DB
     const profile = await prisma.manageUser.create({
-      data: { id: userId, first_name, last_name, username, avatar:"" },
+      data: { authUserId: userId, first_name, last_name, username, avatar:"" },
     });
     return reply.send({ message: "Profile created", profile });
   } catch (error: any) {
@@ -18,7 +26,7 @@ fastify.post("/profile", async (request, reply) => {
   }
 });
 
-fastify.listen({ port: 4000, host: "0.0.0.0" }, (err, address) => {
+fastify.listen({ port: 3002, host: "0.0.0.0" }, (err, address) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
