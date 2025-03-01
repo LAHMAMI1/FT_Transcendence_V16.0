@@ -8,13 +8,17 @@ services:
     container_name: auth-service
     image: auth-service
     env_file: .env
-    # expose: "3001"
-    ports:
-      - "3001:3001"
+    expose: 
+        - "3001"
+    # ports:
+    #   - "3001:3001"
     volumes:
-      - ./auth-service:/auth-service
-    depends_on:
-      - management-service
+      - ./auth-service:/auth-service # For development purposes
+      # - auth-db-volume:/auth-service/prisma/data
+    # depends_on:
+    #   - management-service
+    networks:
+      - Ft_network
 
   management-service:
     build:
@@ -23,7 +27,39 @@ services:
     container_name: management-service
     image: management-service
     env_file: .env
-    ports:
-      - "3002:3002"
+    expose: 
+        - "3002"
+    # ports:
+    #   - "3002:3002"
     volumes:
-      - ./management-service:/management-service
+      - ./management-service:/management-service # For development purposes
+      # - management-db-volume:/management-service/prisma/data
+    networks:
+      - Ft_network
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway
+    image: gateway
+    env_file: .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./gateway:/gateway
+    depends_on:
+      - auth-service
+      - management-service
+    networks:
+      - Ft_network
+
+# volumes:
+#   auth-db-volume:
+#     driver: local
+#   management-db-volume:
+#     driver: local
+
+networks:
+  Ft_network:
+    driver: bridge

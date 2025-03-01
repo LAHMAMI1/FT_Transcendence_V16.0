@@ -21,7 +21,8 @@ export class authController {
             // Create a new user
             const user = await this.authService.createUser(username, email, password, "");
             // Send user information to the management service
-            await this.authService.sendUserInfo(user.id, first_name, last_name, username);
+            if (!await this.authService.sendUserInfo(user.id, first_name, last_name, username))
+                reply.code(500).send({ message: "Failed to send user information to the management service" });
 
             return reply.code(201).send({ userId: user.id, message: "User created succesfully" });
         }

@@ -6,7 +6,7 @@ tsconfig.json
 .env
 # Ignore the Prisma database file
 migrations
-dev.db
-dev.db-journal
-database.sqlite
-database.sqlite-journal
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
