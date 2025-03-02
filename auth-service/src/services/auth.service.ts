@@ -37,17 +37,20 @@ export class authService {
     }
 
     // Send user information to the management service
-    async sendUserInfo(userId: number, first_name: string, last_name:string, username: string) {
-        const managementServiceUrl = env.managementServiceUrl;
+    async sendUserInfo(userId: number, first_name: string, last_name: string, username: string) {
+        try {
+            await axios.post(`${env.managementServiceUrl}/profile`, {
+                userId,
+                first_name, 
+                last_name,
+                username
+            }, {timeout: 5000});
 
-        const responce = await axios.post(`${managementServiceUrl}/profile`, {
-            userId,
-            first_name,
-            last_name,
-            username
-        });
-
-        return responce.data;
+            return true;
+        }
+        catch (error: any) {
+            return false;
+        }
     }
 
     // login services

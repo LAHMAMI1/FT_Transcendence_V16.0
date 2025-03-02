@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   auth-service:
     build:
@@ -10,13 +8,11 @@ services:
     env_file: .env
     expose: 
         - "3001"
-    # ports:
-    #   - "3001:3001"
     volumes:
       - ./auth-service:/auth-service # For development purposes
       # - auth-db-volume:/auth-service/prisma/data
-    # depends_on:
-    #   - management-service
+    depends_on:
+      - management-service
     networks:
       - Ft_network
 
@@ -29,8 +25,6 @@ services:
     env_file: .env
     expose: 
         - "3002"
-    # ports:
-    #   - "3002:3002"
     volumes:
       - ./management-service:/management-service # For development purposes
       # - management-db-volume:/management-service/prisma/data

@@ -1,38 +1,20 @@
 import Fastify from 'fastify';
-import axios from 'axios';
+import httpProxy from '@fastify/http-proxy';
 
 const fastify = Fastify({ logger: true });
 
-fastify.all('/auth/*', async (request, reply) => {
-  try {
-    const path = request.raw.url?.replace('/auth', '');
-    const url = `http://auth-service:3001${path}`; // Use the service name defined in Docker Compose
-    const response = await axios({
-      method: request.method,
-      url,
-      headers: request.headers,
-      data: request.body,
-    });
-    reply.send(response.data);
-  } catch (error: any) {
-    reply.code(error.response?.status || 500).send(error.response?.data || { error: error.message });
-  }
+// Auth Service Proxy
+fastify.register(httpProxy, {
+  prefix: '/auth',
+  upstream: 'http://auth-service:3001',
+  rewritePrefix: '/auth'
 });
 
-fastify.all('/profile/*', async (request, reply) => {
-  try {
-    const path = request.raw.url?.replace('/profile', '');
-    const url = `http://management-service:3002${path}`;
-    const response = await axios({
-      method: request.method,
-      url,
-      headers: request.headers,
-      data: request.body,
-    });
-    reply.send(response.data);
-  } catch (error: any) {
-    reply.code(error.response?.status || 500).send(error.response?.data || { error: error.message });
-  }
+// Management Service Proxy
+fastify.register(httpProxy, {
+  prefix: '/profile',
+  upstream: 'http://management-service:3002',
+  rewritePrefix: ''
 });
 
 fastify.listen({ port: 3000, host: '0.0.0.0' }, (err, address) => {
