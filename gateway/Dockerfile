@@ -1,13 +1,15 @@
-FROM node:22-alpine
+FROM nginx:alpine
 
-WORKDIR /gateway
+RUN apk add --no-cache openssl
 
-COPY package*.json ./
+WORKDIR /etc/nginx
 
-RUN npm install
+COPY nginx.conf ./
 
-COPY    . .
+COPY script.sh ./
 
-EXPOSE 3000
+RUN chmod +x script.sh
 
-CMD ["npx", "ts-node", "server.ts"]
+EXPOSE 443
+
+ENTRYPOINT ["./script.sh"]

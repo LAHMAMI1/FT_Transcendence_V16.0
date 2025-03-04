@@ -19,7 +19,7 @@
             console.log("ID Token:", response.credential);
 
             // Send the token to your backend (for example, using fetch)
-            fetch("http://localhost:3000/oauth2/google", {
+            fetch("https://localhost/oauth2/google", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ idToken: response.credential })
