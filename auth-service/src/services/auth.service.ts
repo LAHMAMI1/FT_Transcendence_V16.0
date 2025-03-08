@@ -53,6 +53,21 @@ export class authService {
         }
     }
 
+    // Send user information to the twofa service
+    async sendTwoFaInfo(userId: number, email: string, two_factor_enabled: boolean) {
+        try {
+            await axios.post(`${env.twofaServiceUrl}/2fa-creation`, {
+                userId,
+                email,
+                two_factor_enabled
+            }, {timeout: 5000});
+            return true;
+        }
+        catch (error: any) {
+            return false;
+        }
+    }
+
     // login services
     async loginUser(email: string, password: string) {
     

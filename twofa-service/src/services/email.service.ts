@@ -1,6 +1,7 @@
 import { randomInt } from 'crypto';
-import transporter from "../../../config/mailer";
+import transporter from "../config/mailer";
 import { PrismaClient } from "@prisma/client";
+import axios from "axios";
 
 const prisma = new PrismaClient();
 
@@ -8,17 +9,22 @@ export class EmailService {
 
     async enableEmail(userId: number) {
         // Enable the email 2FA
-        await prisma.user.update({
-            where: { id: userId },
-            data: { 
+        await prisma.twoFa.update({
+            where: { authUserId: userId },
+            data: {
                 two_factor_enabled: true,
                 email_enabled: true,
-             },
+            },
         });
 
-        return { 
+        await axios.post(`${process.env.AUTH_SERVICE_URL}/2fa-enabled`, {
+            userId,
+            two_factor_enabled: true,
+        }, {timeout: 5000});
+
+        return {
             statusCode: 200,
-            message: "Email 2FA enabled successfully" 
+            message: "Email 2FA enabled successfully"
         };
     }
 
@@ -26,8 +32,8 @@ export class EmailService {
         // Generate a random 6 digit code
         const emailCode = randomInt(100000, 999999).toString();
 
-        const user = await prisma.user.findUnique({
-            where: { id: userId }
+        const user = await prisma.twoFa.findUnique({
+            where: { authUserId: userId }
         });
         if (!user)
             throw {
@@ -45,23 +51,23 @@ export class EmailService {
         });
 
         // Save the 6 digit code with the expiration date
-        await prisma.user.update({
-            where: { id: userId },
+        await prisma.twoFa.update({
+            where: { authUserId: userId },
             data: {
                 two_factor_email_code: emailCode,
                 two_factor_email_expires: new Date(Date.now() + 5 * 60 * 1000),
             },
         });
 
-        return { 
+        return {
             statusCode: 200,
-            message: "Email code sent" 
+            message: "Email code sent"
         };
     }
 
     async verifyEmail(userId: number, code: string) {
-        const user = await prisma.user.findUnique({
-            where: { id: userId }
+        const user = await prisma.twoFa.findUnique({
+            where: { authUserId: userId }
         });
         if (!user || !user.two_factor_email_code || !user.two_factor_email_expires)
             throw {

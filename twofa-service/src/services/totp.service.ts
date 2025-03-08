@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
-import { stat } from "fs";
+import axios from 'axios';
 
 const prisma = new PrismaClient();
 
@@ -35,7 +35,7 @@ export class TotpService {
                 message: "Invalid TOTP token",
             };
 
-        await prisma.user.update({
+        await prisma.twoFa.update({
             where: { id: userId },
             data: {
                 two_factor_enabled: true,
@@ -43,6 +43,11 @@ export class TotpService {
                 two_factor_secret: secret,
             },
         });
+
+        await axios.post(`${process.env.AUTH_SERVICE_URL}/2fa-enabled`, {
+            userId,
+            two_factor_enabled: true,
+        }, {timeout: 5000});
 
         return { 
             statusCode: 200,
@@ -52,7 +57,7 @@ export class TotpService {
 
     async verifyTOTP(userId: number, twoFactorToken: string) {
         
-        const user = await prisma.user.findUnique({
+        const user = await prisma.twoFa.findUnique({
             where: { id: userId},
         });
         if (!user || !user.totp_enabled || !user.two_factor_secret)

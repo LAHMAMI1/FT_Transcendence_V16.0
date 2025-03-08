@@ -16,7 +16,7 @@ export class TotpController {
             const result = await this.totpService.setupTOTP();
 
             return reply.code(result.statusCode).send(result);
-        } 
+        }
         catch (error: any) {
             return reply.code(error.statusCode || 500).send({ message: error.message || "Internal Server Error" });
         }
@@ -43,7 +43,7 @@ export class TotpController {
             // Check the temporary token
             const payload = request.server.jwt.verify(tempToken) as { userId: number, towFactor?: boolean };
             if (!payload.towFactor)
-                return reply.code(401).send({ message: "Invalid Temporary Token"});
+                return reply.code(401).send({ message: "Invalid Temporary Token" });
 
             await this.totpService.verifyTOTP(payload.userId, twoFactorToken);
 

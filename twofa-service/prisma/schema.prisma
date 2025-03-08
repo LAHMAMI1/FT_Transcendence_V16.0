@@ -1,24 +1,23 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = env("TWOFA_DATABASE_URL")
 }
 
-model User {
+model TwoFa {
   id                 Int     @id @default(autoincrement())
-  first_name         String
-  last_name          String
-  username           String  @unique
+  authUserId         Int     @unique
   email              String  @unique
-  date_joined        DateTime @default(now())
-  password           String
-  oauth_provider     String
   two_factor_enabled Boolean @default(false)
   // Fields for TOTP-based 2FA
   totp_enabled       Boolean @default(false)
@@ -27,5 +26,4 @@ model User {
   email_enabled      Boolean @default(false)
   two_factor_email_code      String?
   two_factor_email_expires   DateTime?
-  // avatar             String?
 }

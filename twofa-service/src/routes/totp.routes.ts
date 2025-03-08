@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { TotpController } from "../controllers/totp.controller";
 import { EnableTotpSchema, VerifyTotpSchema } from "../schemas/twoFactor.schemas";
-import { verifyJWT } from "../../../hooks/jwt.hook";
+import { verifyJWT } from "../hooks/jwt.hook";
 
 export default async function totpRoutes(fastify: FastifyInstance) {
     const controller = new TotpController();

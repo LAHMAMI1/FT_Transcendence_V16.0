@@ -17,4 +17,5 @@ model AuthUser {
   password           String
   username           String  @unique
   oauth_provider     String
+  two_factor_enabled Boolean @default(false)
 }

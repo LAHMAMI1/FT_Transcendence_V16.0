@@ -18,15 +18,8 @@
         function handleCredentialResponse(response) {
             console.log("ID Token:", response.credential);
 
-            // Send the token to your backend (for example, using fetch)
-            fetch("https://localhost/oauth2/google", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ idToken: response.credential })
-            })
-            .then(res => res.json())
-            .then(data => console.log("Server Response:", data))
-            .catch(error => console.error("Error:", error));
+            // Display the token on the page for easy copying
+            document.body.innerHTML += `<h2>Your ID Token:</h2><pre>${response.credential}</pre>`;
         }
     </script>
 </body>

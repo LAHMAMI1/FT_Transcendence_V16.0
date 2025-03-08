@@ -31,6 +31,24 @@ services:
     networks:
       - Ft_network
 
+  twofa-service:
+    build:
+      context: ./twofa-service
+      dockerfile: Dockerfile
+    container_name: twofa-service
+    image: twofa-service
+    env_file: .env
+    expose: 
+        - "3003"
+    volumes:
+      - ./twofa-service:/twofa-service # For development purposes
+      # - twofa-db-volume:/twofa-service/prisma/data
+    depends_on:
+      - auth-service
+      - management-service
+    networks:
+      - Ft_network
+
   gateway:
     build:
       context: ./gateway
@@ -45,6 +63,7 @@ services:
     depends_on:
       - auth-service
       - management-service
+      - twofa-service
     networks:
       - Ft_network
 
@@ -52,6 +71,8 @@ services:
 #   auth-db-volume:
 #     driver: local
 #   management-db-volume:
+#     driver: local
+#   twofa-db-volume:
 #     driver: local
 
 networks:
