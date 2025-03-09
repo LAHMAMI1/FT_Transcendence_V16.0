@@ -17,5 +17,5 @@ model manageUser {
   first_name         String
   last_name          String
   username           String  @unique
-  avatar             String
+  avatar             String  @default("../src/avatars/default.jpg")
 }

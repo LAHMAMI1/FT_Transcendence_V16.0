@@ -39,7 +39,7 @@ export class authService {
     // Send user information to the management service
     async sendUserInfo(userId: number, first_name: string, last_name: string, username: string) {
         try {
-            await axios.post(`${env.managementServiceUrl}/profile`, {
+            await axios.post(`${env.managementServiceUrl}/profile/create`, {
                 userId,
                 first_name, 
                 last_name,

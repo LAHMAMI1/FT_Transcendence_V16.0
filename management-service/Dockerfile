@@ -12,4 +12,4 @@ RUN npx prisma generate
 
 EXPOSE 3002
 
-CMD ["sh", "-c", "npx ts-node server.ts"]
+CMD ["sh", "-c", "npx ts-node src/server.ts"]
