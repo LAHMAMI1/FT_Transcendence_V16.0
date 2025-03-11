@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -12,10 +12,30 @@ datasource db {
 }
 
 model manageUser {
-  id                 Int     @id @default(autoincrement())
-  authUserId         Int     @unique
-  first_name         String
-  last_name          String
-  username           String  @unique
-  avatar             String  @default("../src/avatars/default.jpg")
+  id         Int    @id @default(autoincrement())
+  authUserId Int    @unique
+  first_name String
+  last_name  String
+  username   String @unique
+  avatar     String @default("../src/avatars/default.jpg")
+
+  // Outgoing friend requests (this user has added these friends)
+  sentFriendRequests  friend[] @relation("OutgoingFriends")
+  // Incoming friend requests (other users have added this user)
+  receivedFriendRequests friend[] @relation("IncomingFriends")
+}
+
+model friend {
+  id        Int      @id @default(autoincrement())
+  userId    Int      
+  friendId  Int      
+  status    String // "pending", "accepted", "rejected"
+  createdAt DateTime @default(now())
+
+  // The user who sends the friend request
+  user   manageUser @relation("OutgoingFriends", fields: [userId], references: [authUserId])
+  // The user who receives the friend request
+  friend manageUser @relation("IncomingFriends", fields: [friendId], references: [authUserId])
+
+  @@unique([userId, friendId], name: "UserFriendUnique") // Ensure that each pair of users is unique
 }

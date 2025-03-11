@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export class profileService {
+export class ProfileService {
     // Create a new profile
     async createProfile(userId: number, first_name: string, last_name: string, username: string) {
         return prisma.manageUser.create({
@@ -25,7 +25,7 @@ export class profileService {
     }
 
     // Update the profile
-    async updateProfile(userId: string, first_name?: string, last_name?: string, username?: string, avatar?: string) {
+    async updateProfile(userId: string, first_name?: string, last_name?: string, username?: string) {
         return prisma.manageUser.update({
             where: {
                 authUserId: Number(userId)
@@ -33,7 +33,18 @@ export class profileService {
             data: {
                 first_name,
                 last_name,
-                username,
+                username
+            },
+        });
+    }
+
+    // Upload avatar
+    async uploadAvatar(userId: number, avatar: string) {
+        return prisma.manageUser.update({
+            where: {
+                authUserId: userId
+            },
+            data: {
                 avatar
             },
         });
