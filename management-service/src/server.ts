@@ -5,6 +5,8 @@ import fastifyJwt from "@fastify/jwt";
 import env from "./config/env";
 import friendRoutes from "./routes/friend.routes";
 import multipart from "@fastify/multipart";
+import fastifyWebsocket from "@fastify/websocket";
+import websocketRoutes from "./routes/websocket.routes";
 
 const fastify = Fastify({ logger: true });
 
@@ -26,9 +28,13 @@ fastify.register(multipart, {
   },
 });
 
+// Register WebSocket support
+fastify.register(fastifyWebsocket);
+
 // Register routes
 fastify.register(profileRoutes, {prefix: "/profile"});
 fastify.register(friendRoutes, {prefix: "/friend"});
+fastify.register(websocketRoutes);
 
 fastify.listen({ port: 3002, host: "0.0.0.0" }, (err, address) => {
   if (err) {

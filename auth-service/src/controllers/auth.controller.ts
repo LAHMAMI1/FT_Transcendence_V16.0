@@ -46,6 +46,7 @@ export class authController {
                 const tempToken = request.server.jwt.sign(
                     {
                         userId: user.id,
+                        username: user.username,
                         towFactor: true,
                     },
                     { expiresIn: "5m" }
@@ -56,7 +57,10 @@ export class authController {
 
             // Generate a JWT token that includes the userId in the payload and set the token to expire in 1 hour
             const token = request.server.jwt.sign(
-                { userId: user.id },
+                { 
+                    userId: user.id,
+                    username: user.username, 
+                },
                 { expiresIn: "1h" }
             );
 
@@ -76,7 +80,10 @@ export class authController {
 
             // Generate a JWT token that includes the userId in the payload and set the token to expire in 1 hour
             const token = request.server.jwt.sign(
-                { userId: user.id },
+                { 
+                    userId: user.id,
+                    username: user.username, 
+                },
                 { expiresIn: "1h" }
             );
 

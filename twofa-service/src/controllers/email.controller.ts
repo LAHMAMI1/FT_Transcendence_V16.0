@@ -42,7 +42,7 @@ export class EmailController {
             const { tempToken, code } = request.body;
 
             // Check the temporary token
-            const payload = request.server.jwt.verify(tempToken) as { userId: number, towFactor?: boolean };
+            const payload = request.server.jwt.verify(tempToken) as { userId: number, towFactor?: boolean, username: string };
             if (!payload.towFactor)
                 return reply.code(401).send({ message: "Invalid Temporary Token"});
 
@@ -50,7 +50,10 @@ export class EmailController {
 
             // Generate a JWT token that includes the userId in the payload and set the token to expire in 1 hour
             const token = request.server.jwt.sign(
-                { userId: payload.userId },
+                { 
+                    userId: payload.userId,
+                    username: payload.username,
+                },
                 { expiresIn: "1h" }
             );
 

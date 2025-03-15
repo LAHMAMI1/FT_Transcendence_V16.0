@@ -17,7 +17,9 @@ model manageUser {
   first_name String
   last_name  String
   username   String @unique
-  avatar     String @default("../src/avatars/default.jpg")
+  avatar     String @default("./avatars/default.jpg")
+  lastSeen   DateTime @default(now())
+  isOnline   Boolean @default(false)
 
   // Outgoing friend requests (this user has added these friends)
   sentFriendRequests  friend[] @relation("OutgoingFriends")
