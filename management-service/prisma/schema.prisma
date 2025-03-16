@@ -12,25 +12,33 @@ datasource db {
 }
 
 model manageUser {
-  id         Int    @id @default(autoincrement())
-  authUserId Int    @unique
+  id         Int      @id @default(autoincrement())
+  authUserId Int      @unique
   first_name String
   last_name  String
-  username   String @unique
-  avatar     String @default("./avatars/default.jpg")
+  username   String   @unique
+  avatar     String   @default("./avatars/default.jpg")
   lastSeen   DateTime @default(now())
-  isOnline   Boolean @default(false)
+  isOnline   Boolean  @default(false)
+
+  wins   Int @default(0)
+  losses Int @default(0)
+  draws  Int @default(0)
 
   // Outgoing friend requests (this user has added these friends)
-  sentFriendRequests  friend[] @relation("OutgoingFriends")
+  sentFriendRequests     friend[] @relation("OutgoingFriends")
   // Incoming friend requests (other users have added this user)
   receivedFriendRequests friend[] @relation("IncomingFriends")
+
+  // Matches played by this user
+  playerMatches   matchHistory[] @relation("PlayerMatches")
+  opponentMatches matchHistory[] @relation("OpponentMatches")
 }
 
 model friend {
   id        Int      @id @default(autoincrement())
-  userId    Int      
-  friendId  Int      
+  userId    Int
+  friendId  Int
   status    String // "pending", "accepted", "rejected"
   createdAt DateTime @default(now())
 
@@ -40,4 +48,17 @@ model friend {
   friend manageUser @relation("IncomingFriends", fields: [friendId], references: [authUserId])
 
   @@unique([userId, friendId], name: "UserFriendUnique") // Ensure that each pair of users is unique
+}
+
+model matchHistory {
+  id            Int      @id @default(autoincrement())
+  playerId      Int
+  opponentId    Int
+  createdAt     DateTime @default(now())
+  gameResult    String // "win", "loss", "draw"
+  playerScore   Int
+  opponentScore Int
+
+  player   manageUser @relation("PlayerMatches", fields: [playerId], references: [authUserId])
+  opponent manageUser @relation("OpponentMatches", fields: [opponentId], references: [authUserId])
 }
