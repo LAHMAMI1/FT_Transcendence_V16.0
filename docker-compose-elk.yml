@@ -1,59 +1,100 @@
 services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.17.3
+    container_name: filebeat
+    user: root # This allows Filebeat to read logs from the host
+    volumes:
+      - ./elk-stack/certs:/usr/share/filebeat/config/certs:ro
+      - ./elk-stack/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log:/var/log:ro
+      - registry:/usr/share/filebeat/data:rw
+    env_file:
+      - .env
+    command: filebeat -e --strict.perms=false
+    depends_on:
+      - logstash
+    networks:
+      - Ft_network
+    mem_limit: 512m
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.17.3
+    container_name: logstash
+    environment:
+      - xpack.monitoring.enabled=true
+      - xpack.monitoring.elasticsearch.hosts=["${ELASTICSEARCH_HOSTS}"]
+      - xpack.monitoring.elasticsearch.username=elastic
+      - xpack.monitoring.elasticsearch.password=${ELASTIC_PASSWORD}
+      - xpack.monitoring.elasticsearch.ssl.certificate_authority=/usr/share/logstash/config/certs/ca.crt
+    volumes:
+      - ./elk-stack/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./elk-stack/certs:/usr/share/logstash/config/certs:ro
+    env_file:
+      - .env
+    ports:
+      - "5044:5044"
+    depends_on:
+      - elasticsearch
+    networks:
+      - Ft_network
+    mem_limit: 512m
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.17.3
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.http.ssl.key=/usr/share/elasticsearch/config/certs/elk.key
+      - xpack.security.http.ssl.certificate=/usr/share/elasticsearch/config/certs/elk.crt
+      - xpack.security.http.ssl.certificate_authorities=/usr/share/elasticsearch/config/certs/ca.crt
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ./elk-stack/certs:/usr/share/elasticsearch/config/certs:ro
+      - esdata:/usr/share/elasticsearch/data
+    env_file:
+      - .env
     ports:
       - "9200:9200"
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
     networks:
       - Ft_network
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:8.17.3
-    container_name: logstash
-    volumes:
-      - ./logstash/pipeline:/usr/share/logstash/pipeline
-    expose:
-      - "5000"
-      - "5044"
-    networks:
-      - Ft_network
+    healthcheck:
+      test: [ "CMD", "curl", "-k", "-u", "elastic:${ELASTIC_PASSWORD}", "${ELASTICSEARCH_HOSTS}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    mem_limit: 512m
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.17.3
     container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=${ELASTICSEARCH_HOSTS}
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=2XiEpLMQ15sQT4HNevcU
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=/usr/share/kibana/config/certs/ca.crt
+      - SERVER_SSL_ENABLED=true
+      - SERVER_SSL_CERTIFICATE=/usr/share/kibana/config/certs/elk.crt
+      - SERVER_SSL_KEY=/usr/share/kibana/config/certs/elk.key
+    volumes:
+      - ./elk-stack/certs:/usr/share/kibana/config/certs:ro
+    env_file:
+      - .env
     ports:
       - "5601:5601"
     depends_on:
       - elasticsearch
     networks:
       - Ft_network
-
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:8.17.3
-    container_name: filebeat
-    user: root  # This allows Filebeat to read logs from the host
-    volumes:
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/log/:/var/log/:ro
-      - filebeat_data:/usr/share/filebeat/data
-    command: filebeat -e --strict.perms=false
-    depends_on:
-      - elasticsearch
-      - logstash
-    networks:
-      - Ft_network
+    mem_limit: 1g
 
 volumes:
-  esdata:
+  registry:
     driver: local
-  filebeat_data:
+  esdata:
     driver: local
 
 networks:

@@ -1,0 +1,57 @@
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+      templates:
+        - condition:
+            contains:
+              docker.container.image: "*"
+          config:
+            - type: container
+              paths:
+                - /var/lib/docker/containers/${data.docker.container.id}/*.log
+              exclude_lines: ["^\\s+[\\-`('.|_]"]  # Filter out noisy log lines
+
+# Add system logs collection
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/*.log
+      - /var/log/messages
+      - /var/log/syslog
+    fields:
+      log_type: system
+
+processors:
+  - add_host_metadata: ~
+  - add_docker_metadata: ~
+  - drop_event:
+      when:
+        regexp:
+          message: "^\\s*$"  # Drop empty messages
+
+output.logstash:
+  enabled: true
+  hosts: ["logstash:5044"]
+  ssl.enabled: true
+  ssl.verification_mode: none
+  ssl.certificate: "/usr/share/filebeat/config/certs/elk.crt"
+  ssl.key: "/usr/share/filebeat/config/certs/elk.key"
+  loadbalance: true
+  worker: 2
+
+logging.level: debug
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# Add setup section for automatic dashboard setup
+setup.kibana:
+  host: "https://kibana:5601"
+  ssl.enabled: true
+  ssl.verification_mode: none
+
