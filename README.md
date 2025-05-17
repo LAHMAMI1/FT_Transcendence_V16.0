@@ -1,4 +1,4 @@
-# FT_Transcendence - Multiplayer Pong Game
+# FT_Transcendence - Multiplayer Pong Game (Building the backend part Only)
 
 ## 🚀 Overview
 
@@ -240,7 +240,7 @@ sequenceDiagram
 
 1.  **Clone the repository (if you haven't already):**
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/LAHMAMI1/FT_Transcendence_V16.0.git
     cd FT_Transcendence
     ```
 
