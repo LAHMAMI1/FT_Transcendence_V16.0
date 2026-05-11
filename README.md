@@ -1,4 +1,4 @@
-# FT_Transcendence - Multiplayer Pong Game (Building the backend part Only)
+# # FT_Transcendence -> Real-time Multiplayer Pong Platform
 
 ## 🚀 Overview
 
